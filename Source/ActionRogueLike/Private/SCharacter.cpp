@@ -77,6 +77,7 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Jumping", IE_Pressed, this, &ASCharacter::Jump);
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this , &ASCharacter::PrimaryAttack);
+	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &ASCharacter::SecondaryAttack);
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 	
 
@@ -115,11 +116,19 @@ void ASCharacter::PrimaryAttack()
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);
 }
 
+void ASCharacter::SecondaryAttack()
+{
+	PlayAnimMontage(AttackAnim);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::SecondaryAttack_TimeElapsed, 0.2f);
+	
+}
+
 void ASCharacter::PrimaryAttack_TimeElapsed()
 {
 	APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
 	FVector camStartLocation = camManager->GetCameraLocation();
-	FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 1000.0f);
+	FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 10000.0f);
 	
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
@@ -129,7 +138,7 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 	FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
 
 	
-	GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
+	bool bHit = GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
 		                                                      FQuat::Identity, ECC_WorldDynamic, Shape);
 
 	DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
@@ -137,7 +146,7 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 	DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
 	
 	
-	FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.TraceEnd);
+	FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
 	
 	FTransform SpawnTM = FTransform(finalRotation,HandLocation);
 	
@@ -147,6 +156,40 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 
 	
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+}
+
+void ASCharacter::SecondaryAttack_TimeElapsed()
+{
+	APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+	FVector camStartLocation = camManager->GetCameraLocation();
+	FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 10000.0f);
+	
+	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+
+	float Radius = 5.0f;
+	FHitResult Hit;
+
+	FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+
+	
+	bool bHit = GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
+															  FQuat::Identity, ECC_WorldDynamic, Shape);
+
+	DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
+	
+	DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
+	
+	
+	FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
+	
+	FTransform SpawnTM = FTransform(finalRotation,HandLocation);
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Instigator = this;
+
+	
+	GetWorld()->SpawnActor<AActor>(SecondaryProjectileClass, SpawnTM, SpawnParams);
 }
 
 void ASCharacter::PrimaryInteract()

@@ -21,6 +21,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category= "Attack")
 	TSubclassOf<AActor> ProjectileClass;
 
+	UPROPERTY(EditAnywhere, Category= "SecondaryAttack")
+	TSubclassOf<AActor> SecondaryProjectileClass;
+
 	UPROPERTY(EditAnywhere, Category= "Attack")
 	UAnimMontage* AttackAnim;
 
@@ -55,8 +58,12 @@ public:
 	void MoveRight(float Value);
 
 	void PrimaryAttack();
-	
+
 	void PrimaryAttack_TimeElapsed();
+
+	void SecondaryAttack();
+	
+	void SecondaryAttack_TimeElapsed();
 
 	void PrimaryInteract();
 	

@@ -5,22 +5,27 @@
 #include "CoreMinimal.h"
 #include "SBaseProjectile.h"
 #include "GameFramework/Actor.h"
-#include "SMagicProjectile.generated.h"
+#include "SBlackHoleProjectile.generated.h"
 
 class USphereComponent;
-class UProjectileMovementComponent;
-class UParticleSystemComponent;
+class URadialForceComponent;
 
 UCLASS()
-class ACTIONROGUELIKE_API ASMagicProjectile : public ASBaseProjectile
+class ACTIONROGUELIKE_API ASBlackHoleProjectile : public ASBaseProjectile
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ASMagicProjectile();
+	ASBlackHoleProjectile();
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USphereComponent* DestroySphereComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	URadialForceComponent* RadialForceComp;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
