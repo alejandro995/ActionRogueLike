@@ -16,18 +16,20 @@ class ACTIONROGUELIKE_API ASExplosiveBarrel : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	ASExplosiveBarrel(const FObjectInitializer& ObjectInitializer);
+	ASExplosiveBarrel();
 
 protected:
 
 	UFUNCTION()
-	void OnComponentHit(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnActorHit(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* StaticMeshComp;
 
 	UPROPERTY(VisibleAnywhere)
 	URadialForceComponent* RadialForceComp;
+
+	virtual void PostInitializeComponents() override;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

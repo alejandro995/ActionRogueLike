@@ -2,7 +2,6 @@
 
 
 #include "SCharacter.h"
-#include "ActionRogueLike/Public/SCharacter.h"
 #include "DrawDebugHelpers.h"
 #include "SInteractionComponent.h"
 
@@ -11,6 +10,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -117,12 +117,33 @@ void ASCharacter::PrimaryAttack()
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
 {
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+	FVector camStartLocation = camManager->GetCameraLocation();
+	FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 1000.0f);
 	
-	FTransform SpawnTM = FTransform(GetControlRotation(),HandLocation);
+	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+
+	float Radius = 5.0f;
+	FHitResult Hit;
+
+	FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+
+	
+	GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
+		                                                      FQuat::Identity, ECC_WorldDynamic, Shape);
+
+	DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
+	
+	DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
+	
+	
+	FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.TraceEnd);
+	
+	FTransform SpawnTM = FTransform(finalRotation,HandLocation);
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Instigator = this;
 
 	
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
