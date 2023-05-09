@@ -12,6 +12,7 @@ class USpringArmComponent;
 class USInteractionComponent;
 class UAnimMontage;
 
+
 UCLASS()
 class ACTIONROGUELIKE_API ASCharacter : public ACharacter
 {
@@ -24,6 +25,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category= "SecondaryAttack")
 	TSubclassOf<AActor> SecondaryProjectileClass;
 
+	UPROPERTY(EditAnywhere, Category= "Dash")
+	TSubclassOf<AActor> DashProjectileClass;
+
 	UPROPERTY(EditAnywhere, Category= "Attack")
 	UAnimMontage* AttackAnim;
 
@@ -35,7 +39,7 @@ public:
 	ASCharacter();
 
 protected:
-
+	
 	//Function definition
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComp;
@@ -56,7 +60,7 @@ public:
 	void MoveForward(float Value);
 
 	void MoveRight(float Value);
-
+	
 	void PrimaryAttack();
 
 	void PrimaryAttack_TimeElapsed();
@@ -65,6 +69,10 @@ public:
 	
 	void SecondaryAttack_TimeElapsed();
 
+	void Dash();
+
+	void Dash_TimeElapsed();
+	
 	void PrimaryInteract();
 	
 	// Called to bind functionality to input
