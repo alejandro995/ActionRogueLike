@@ -200,7 +200,7 @@ void ASCharacter::SecondaryAttack_TimeElapsed()
 	SpawnParams.Instigator = this;
 
 	
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	GetWorld()->SpawnActor<AActor>(SecondaryProjectileClass, SpawnTM, SpawnParams);
 }
 
 void ASCharacter::Dash_TimeElapsed()
