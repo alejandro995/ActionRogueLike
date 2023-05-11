@@ -3,8 +3,10 @@
 
 #include "SBaseProjectile.h"
 
+#include "SAttributesComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
@@ -39,5 +41,51 @@ void ASBaseProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ASBaseProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(OtherActor)
+	{
+		USAttributesComponent* AtrributeComp = Cast<USAttributesComponent>(OtherActor->GetComponentByClass(USAttributesComponent::StaticClass()));
+		if(AtrributeComp)
+		{
+			AtrributeComp->ApplyHealthChange(-20.0f);
+
+			Destroy();
+		}
+	}
+	
+	
+}
+
+void ASBaseProjectile::OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Explode();
+}
+
+void ASBaseProjectile::Explode_Implementation()
+{
+	// Check to make sure we aren't already being 'destroyed'
+	// Adding ensure to see if we encounter this situation at all
+	if (ensure(!IsPendingKill()))
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+
+		EffectComp->DeactivateSystem();
+
+		MovementComp->StopMovementImmediately();
+		SetActorEnableCollision(false);
+
+		Destroy();
+	}
+}
+
+
+void ASBaseProjectile::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	//SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
 }
 

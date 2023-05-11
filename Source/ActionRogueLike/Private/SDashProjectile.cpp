@@ -4,6 +4,7 @@
 #include "SDashProjectile.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
@@ -56,6 +57,25 @@ void ASDashProjectile::Teleport_TimeElapsed()
 	
 	
 	
+}
+
+void ASDashProjectile::Explode_Implementation()
+{
+	// Clear timer if the Explode was already called through another source like OnActorHit
+	GetWorldTimerManager().ClearTimer(TimerHandle_Explode);
+
+	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+
+	EffectComp->DeactivateSystem();
+
+	MovementComp->StopMovementImmediately();
+	SetActorEnableCollision(false);
+
+	FTimerHandle TimerHandle_DelayedTeleport;
+	GetWorldTimerManager().SetTimer(TimerHandle_DelayedTeleport, this, &ASDashProjectile::Teleport_TimeElapsed, 0.2f);
+
+	// Skip base implementation as it will destroy actor
+	//Super::Explode_Implementation();
 }
 
 

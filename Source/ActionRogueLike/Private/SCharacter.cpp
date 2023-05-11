@@ -3,6 +3,7 @@
 
 #include "SCharacter.h"
 #include "DrawDebugHelpers.h"
+#include "SAttributesComponent.h"
 #include "SInteractionComponent.h"
 
 #include "Camera/CameraComponent.h"
@@ -26,6 +27,8 @@ ASCharacter::ASCharacter()
 	CameraComp->SetupAttachment(SpringArmComp);
 
 	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
+
+	AttributesComp = CreateDefaultSubobject<USAttributesComponent>("AttributesComp");
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
@@ -137,36 +140,40 @@ void ASCharacter::Dash()
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
 {
-	APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
-	FVector camStartLocation = camManager->GetCameraLocation();
-	FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 10000.0f);
+	if(ensure(ProjectileClass))
+	{
+		APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+		FVector camStartLocation = camManager->GetCameraLocation();
+		FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 10000.0f);
 	
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-	float Radius = 5.0f;
-	FHitResult Hit;
+		float Radius = 5.0f;
+		FHitResult Hit;
 
-	FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
-
-	
-	bool bHit = GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
-		                                                      FQuat::Identity, ECC_WorldDynamic, Shape);
-
-	DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
-	
-	DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
-	
-	
-	FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
-	
-	FTransform SpawnTM = FTransform(finalRotation,HandLocation);
-	
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
+		FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
 
 	
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		bool bHit = GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
+																  FQuat::Identity, ECC_WorldDynamic, Shape);
+
+		DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
+	
+		DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
+	
+	
+		FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
+	
+		FTransform SpawnTM = FTransform(finalRotation,HandLocation);
+	
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Instigator = this;
+
+	
+		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	}
+	
 }
 
 void ASCharacter::SecondaryAttack_TimeElapsed()

@@ -19,8 +19,12 @@ public:
 	ASDashProjectile();
 
 protected:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UParticleSystemComponent* ExplotionEffectComp;
+
+	// Base class using BlueprintNativeEvent, we must override the _Implementation not the Explode()
+	virtual void Explode_Implementation() override;
 	
 	FTimerHandle TimerHandle_Explode;
 	// Called when the game starts or when spawned
