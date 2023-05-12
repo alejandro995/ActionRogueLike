@@ -53,6 +53,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USAttributesComponent* AttributesComp;
+
+	UPROPERTY(VisibleAnywhere, Category="Debug")
+	bool DebugMode;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -78,7 +81,10 @@ public:
 	void Dash_TimeElapsed();
 	
 	void PrimaryInteract();
-	
+
+	void DebugDirectionArrow();
+
+	void Attack_TimeElapsed(TSubclassOf<AActor> ProjectileClassArg);
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 

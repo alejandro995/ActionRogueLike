@@ -29,6 +29,7 @@ ASCharacter::ASCharacter()
 	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
 
 	AttributesComp = CreateDefaultSubobject<USAttributesComponent>("AttributesComp");
+	DebugMode = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
@@ -48,6 +49,14 @@ void ASCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if(DebugMode)
+	{
+		DebugDirectionArrow();
+	}
+}
+
+void ASCharacter::DebugDirectionArrow()
+{
 	// -- Rotation Visualization -- //
 	const float DrawScale = 100.0f;
 	const float Thickness = 5.0f;
@@ -59,12 +68,12 @@ void ASCharacter::Tick(float DeltaTime)
 	FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
 	// Draw Actor's Direction
 	DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
-
 	FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
 	// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
 	DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
-
+	
 }
+
 
 // Called to bind functionality to input
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -89,7 +98,6 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void ASCharacter::MoveForward(float Value)
 {
-
 	FRotator ControlRot = GetControlRotation();
 	ControlRot.Pitch = 0.0f;
 	ControlRot.Roll = 0.0f;
@@ -107,13 +115,8 @@ void ASCharacter::MoveRight(float Value)
 	// Z = Up (Blue)
 
 	const FVector RightVector = FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y);
-
-	
 	AddMovementInput(RightVector, Value);
 }
-
-
-
 
 void ASCharacter::PrimaryAttack()
 {
@@ -140,112 +143,53 @@ void ASCharacter::Dash()
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
 {
-	if(ensure(ProjectileClass))
+		Attack_TimeElapsed(ProjectileClass);
+}
+
+void ASCharacter::SecondaryAttack_TimeElapsed()
+{
+	Attack_TimeElapsed(SecondaryProjectileClass);
+}
+
+void ASCharacter::Dash_TimeElapsed()
+{
+	Attack_TimeElapsed(DashProjectileClass);
+}
+
+void ASCharacter::Attack_TimeElapsed(TSubclassOf<AActor> ProjectileClassArg)
+{
+	if(ensure(ProjectileClassArg))
 	{
 		APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
 		FVector camStartLocation = camManager->GetCameraLocation();
 		FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 10000.0f);
-	
 		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-
 		float Radius = 5.0f;
 		FHitResult Hit;
-
 		FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
-
-	
 		bool bHit = GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
 																  FQuat::Identity, ECC_WorldDynamic, Shape);
-
-		DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
-	
-		DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
-	
-	
 		FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
-	
 		FTransform SpawnTM = FTransform(finalRotation,HandLocation);
-	
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnParams.Instigator = this;
 
 	
-		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		GetWorld()->SpawnActor<AActor>(ProjectileClassArg , SpawnTM, SpawnParams);
+
+		if(DebugMode)
+		{
+			DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
+			DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
+		}
 	}
 	
-}
-
-void ASCharacter::SecondaryAttack_TimeElapsed()
-{
-	APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
-	FVector camStartLocation = camManager->GetCameraLocation();
-	FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 10000.0f);
-	
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-
-	float Radius = 5.0f;
-	FHitResult Hit;
-
-	FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
-
-	
-	bool bHit = GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
-															  FQuat::Identity, ECC_WorldDynamic, Shape);
-
-	DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
-	
-	DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
-	
-	
-	FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
-	
-	FTransform SpawnTM = FTransform(finalRotation,HandLocation);
-	
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
-
-	
-	GetWorld()->SpawnActor<AActor>(SecondaryProjectileClass, SpawnTM, SpawnParams);
-}
-
-void ASCharacter::Dash_TimeElapsed()
-{
-	APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
-	FVector camStartLocation = camManager->GetCameraLocation();
-	FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 10000.0f);
-	
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-
-	float Radius = 5.0f;
-	FHitResult Hit;
-
-	FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
-
-	
-	bool bHit = GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
-															  FQuat::Identity, ECC_WorldDynamic, Shape);
-
-	DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
-	
-	DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
-	
-	
-	FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
-	
-	FTransform SpawnTM = FTransform(finalRotation,HandLocation);
-	
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
-
-	
-	GetWorld()->SpawnActor<AActor>(DashProjectileClass, SpawnTM, SpawnParams);
 }
 
 void ASCharacter::PrimaryInteract()
 {
 	InteractionComp->PrimaryInteract();
 }
+
 
