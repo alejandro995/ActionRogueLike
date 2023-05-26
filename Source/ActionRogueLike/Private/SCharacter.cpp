@@ -11,7 +11,9 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -26,6 +28,8 @@ ASCharacter::ASCharacter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	CameraComp->SetupAttachment(SpringArmComp);
 
+	HitFlashVFX = CreateDefaultSubobject<UParticleSystem>("HitFlashVFX");
+	
 	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
 
 	AttributesComp = CreateDefaultSubobject<USAttributesComponent>("AttributesComp");
@@ -35,6 +39,13 @@ ASCharacter::ASCharacter()
 
 	bUseControllerRotationYaw = false;
 	
+}
+
+void ASCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	AttributesComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
 }
 
 // Called when the game starts or when spawned
@@ -121,6 +132,7 @@ void ASCharacter::MoveRight(float Value)
 void ASCharacter::PrimaryAttack()
 {
 	PlayAnimMontage(AttackAnim);
+	PlayHitFlashEffect();
 
 	
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);
@@ -129,6 +141,7 @@ void ASCharacter::PrimaryAttack()
 void ASCharacter::SecondaryAttack()
 {
 	PlayAnimMontage(AttackAnim);
+	PlayHitFlashEffect();
 
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::SecondaryAttack_TimeElapsed, 0.2f);
 	
@@ -137,6 +150,7 @@ void ASCharacter::SecondaryAttack()
 void ASCharacter::Dash()
 {
 	PlayAnimMontage(AttackAnim);
+	PlayHitFlashEffect();
 
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::Dash_TimeElapsed, 0.2f);
 }
@@ -167,8 +181,14 @@ void ASCharacter::Attack_TimeElapsed(TSubclassOf<AActor> ProjectileClassArg)
 		float Radius = 5.0f;
 		FHitResult Hit;
 		FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
-		bool bHit = GetWorld()->SweepSingleByChannel(Hit, camStartLocation, camEndLocation,
-																  FQuat::Identity, ECC_WorldDynamic, Shape);
+		FCollisionObjectQueryParams objParams;
+		objParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+		objParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		objParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		// SweepSingleByObjectType validates over object type where it was hit
+		bool bHit = GetWorld()->SweepSingleByObjectType(Hit, camStartLocation, camEndLocation,
+																  FQuat::Identity, objParams, Shape);
 		FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
 		FTransform SpawnTM = FTransform(finalRotation,HandLocation);
 		FActorSpawnParameters SpawnParams;
@@ -187,9 +207,37 @@ void ASCharacter::Attack_TimeElapsed(TSubclassOf<AActor> ProjectileClassArg)
 	
 }
 
+void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributesComponent* OwningComp, float NewHealth,
+	float Delta)
+{
+	if(Delta <0.0f)
+		
+	{
+		
+		USkeletalMeshComponent* Charactermesh = GetMesh();
+		UE_LOG(LogTemp, Warning, TEXT("MESH: %s"), *GetNameSafe(Charactermesh));
+		Charactermesh->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+
+	}
+
+	
+	if(NewHealth <=0 && Delta <0.0f)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		DisableInput(PC);
+	}
+}
+
+
+
 void ASCharacter::PrimaryInteract()
 {
 	InteractionComp->PrimaryInteract();
+}
+
+void ASCharacter::PlayHitFlashEffect()
+{
+	UGameplayStatics::SpawnEmitterAttached(HitFlashVFX, GetMesh(), "Muzzle_01");
 }
 
 

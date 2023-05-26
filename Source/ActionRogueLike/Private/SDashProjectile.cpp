@@ -34,7 +34,7 @@ void ASDashProjectile::Explode_TimeElapsed()
 {
 	MovementComp->StopMovementImmediately();
 	EffectComp->Deactivate();
-	ExplotionEffectComp->Activate();
+	
 	
 
 	GetWorldTimerManager().SetTimer(TimerHandle_Explode, this, &ASDashProjectile::Teleport_TimeElapsed, 0.2f);
@@ -43,7 +43,7 @@ void ASDashProjectile::Explode_TimeElapsed()
 
 void ASDashProjectile::Teleport_TimeElapsed()
 {
-
+	
 	AActor* ActorToTeleport = GetInstigator();
 	FVector TeleportLocation = SphereComp->GetComponentLocation();
 	DrawDebugSphere(GetWorld(), TeleportLocation, 10, 16, FColor::Orange, false, 2.0f);
@@ -67,7 +67,7 @@ void ASDashProjectile::Explode_Implementation()
 	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
 
 	EffectComp->DeactivateSystem();
-
+	ExplotionEffectComp->Activate();
 	MovementComp->StopMovementImmediately();
 	SetActorEnableCollision(false);
 

@@ -33,10 +33,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Atributtes")
 	float Health;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Atributtes")
+	float MaxHealth;
+
 	
 	// HealthMax, Stamina, Strength
 
 public:
+
+	UFUNCTION(BlueprintCallable)
+	bool isAlive() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool isFullHealth() const;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;

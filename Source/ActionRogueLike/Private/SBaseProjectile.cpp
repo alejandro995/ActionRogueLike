@@ -3,7 +3,8 @@
 
 #include "SBaseProjectile.h"
 
-#include "SAttributesComponent.h"
+#include "Camera/CameraShakeSourceComponent.h"
+#include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -17,10 +18,21 @@ ASBaseProjectile::ASBaseProjectile()
 
 	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
 	SphereComp->SetCollisionProfileName("Projectile");
+	SphereComp->OnComponentHit.AddDynamic(this, &ASBaseProjectile::OnActorHit);
 	RootComponent = SphereComp;
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
 	EffectComp->SetupAttachment(SphereComp);
+
+	ImpactVFX = CreateDefaultSubobject<UParticleSystem>("ImpactEffectSystem");
+
+	AudioComp = CreateDefaultSubobject<UAudioComponent>("AudioComponent");
+	AudioComp->SetupAttachment(SphereComp);
+
+	CameraShake = CreateDefaultSubobject<UCameraShakeSourceComponent>("CameraShake");
+
+	ImpactAudioComp = CreateDefaultSubobject<UAudioComponent>("ImpactAudioComp");
+	ImpactAudioComp->SetupAttachment(SphereComp);
 
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
 	MovementComp->InitialSpeed = 1000.0f;
@@ -33,6 +45,7 @@ ASBaseProjectile::ASBaseProjectile()
 void ASBaseProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+	AudioComp->Play();
 	
 }
 
@@ -46,18 +59,6 @@ void ASBaseProjectile::Tick(float DeltaTime)
 void ASBaseProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(OtherActor)
-	{
-		USAttributesComponent* AtrributeComp = Cast<USAttributesComponent>(OtherActor->GetComponentByClass(USAttributesComponent::StaticClass()));
-		if(AtrributeComp)
-		{
-			AtrributeComp->ApplyHealthChange(-20.0f);
-
-			Destroy();
-		}
-	}
-	
-	
 }
 
 void ASBaseProjectile::OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -72,6 +73,8 @@ void ASBaseProjectile::Explode_Implementation()
 	if (ensure(!IsPendingKill()))
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+
+		UE_LOG(LogTemp, Warning, TEXT("FUCK I EXPODEEEE BASE CLASE"));
 
 		EffectComp->DeactivateSystem();
 

@@ -12,6 +12,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class USInteractionComponent;
 class UAnimMontage;
+class UParticleSystem;
 
 
 UCLASS()
@@ -31,6 +32,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category= "Attack")
 	UAnimMontage* AttackAnim;
+
+	UPROPERTY(EditAnywhere, Category="Attack")
+	UParticleSystem* HitFlashVFX;
 
 	FTimerHandle TimerHandle_PrimaryAttack;
 
@@ -81,10 +85,18 @@ public:
 	void Dash_TimeElapsed();
 	
 	void PrimaryInteract();
+	
+	void PlayHitFlashEffect();
 
 	void DebugDirectionArrow();
 
 	void Attack_TimeElapsed(TSubclassOf<AActor> ProjectileClassArg);
+
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, USAttributesComponent* OwningComp, float NewHealth, float Delta);
+
+	virtual void PostInitializeComponents() override;
+	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 

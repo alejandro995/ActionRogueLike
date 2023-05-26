@@ -9,8 +9,9 @@
 class USphereComponent;
 class UProjectileMovementComponent;
 class UParticleSystemComponent;
+class UCameraShakeBase;
 
-UCLASS()
+UCLASS(ABSTRACT)
 class ACTIONROGUELIKE_API ASBaseProjectile : public AActor
 {
 	GENERATED_BODY()
@@ -32,13 +33,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UParticleSystemComponent* EffectComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Sound")
+	UAudioComponent* AudioComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Sound")
+	UAudioComponent* ImpactAudioComp;
+
+	UPROPERTY(EditAnywhere, Category="Camera")
+	UCameraShakeSourceComponent* CameraShake;
+
 	UFUNCTION()
 	virtual void OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	
-
 	UFUNCTION()
-	void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	virtual void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Explode();
