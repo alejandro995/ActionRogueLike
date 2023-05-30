@@ -7,6 +7,7 @@
 #include "SAICharacter.generated.h"
 
 class UPawnSensingComponent;
+class USAttributesComponent;
 
 
 UCLASS()
@@ -19,13 +20,21 @@ public:
 
 protected:
 
-	virtual void PostInitializeComponents() override;
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	USAttributesComponent* AttributesComp;
+	
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	UPawnSensingComponent* PawnSensingComponent;
 
 	UFUNCTION()
 	void OnPawnSeen(APawn* Pawn);
+	
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, USAttributesComponent* OwningComp, float NewHealth, float Delta);
+
+	void setTargetActor(AActor* NewTarget);
+
+	virtual void PostInitializeComponents() override;
 
 	
 };

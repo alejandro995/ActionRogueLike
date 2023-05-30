@@ -13,6 +13,7 @@ ASMagicProjectile::ASMagicProjectile()
 {
 	SphereComp->OnComponentHit.AddDynamic(this, &ASMagicProjectile::OnActorHit);
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);
+	DamageAmount = 20.0f;
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
@@ -24,6 +25,8 @@ void ASMagicProjectile::OnActorHit(UPrimitiveComponent* HitComponent, AActor* Ot
 	if(OtherActor && OtherActor != GetInstigator())
 	{
 
+		Explode();
+
 		UE_LOG(LogTemp, Warning, TEXT("FUCK I EXPODEEEE MAGIC PROJECTILE"));
 		
 		USoundBase* ImpactSound = ImpactAudioComp->GetSound();
@@ -33,7 +36,7 @@ void ASMagicProjectile::OnActorHit(UPrimitiveComponent* HitComponent, AActor* Ot
 		USAttributesComponent* AtrributeComp = Cast<USAttributesComponent>(OtherActor->GetComponentByClass(USAttributesComponent::StaticClass()));
 		if(AtrributeComp)
 		{
-			AtrributeComp->ApplyHealthChange(-20.0f);
+			AtrributeComp->ApplyHealthChange(GetInstigator(),-DamageAmount);
 
 			Destroy();
 		}
@@ -43,13 +46,14 @@ void ASMagicProjectile::OnActorHit(UPrimitiveComponent* HitComponent, AActor* Ot
 void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
                                        bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("FUCK I EXPODEEEE MAGIC PROJECTILE OVERLAP"));
 	if(OtherActor && OtherActor != GetInstigator())
 	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+		Explode();
 		USAttributesComponent* AtrributeComp = Cast<USAttributesComponent>(OtherActor->GetComponentByClass(USAttributesComponent::StaticClass()));
 		if(AtrributeComp)
 		{
-			AtrributeComp->ApplyHealthChange(-20.0f);
+			AtrributeComp->ApplyHealthChange(GetInstigator(),-DamageAmount);
 
 			Destroy();
 		}

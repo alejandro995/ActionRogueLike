@@ -20,13 +20,17 @@ bool USAttributesComponent::isFullHealth() const
 	return Health == MaxHealth;
 }
 
-bool USAttributesComponent::ApplyHealthChange(float Delta)
+bool USAttributesComponent::ApplyHealthChange(AActor* InstigatorActor,  float Delta)
 {
-	Health = FMath::Clamp(Health+Delta, 0, 100); ;
+	float OldHealth = Health;
+	
+	Health = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);
 
-	OnHealthChanged.Broadcast(nullptr, this, Health, Delta);
+	float ActualDelta = Health - OldHealth;
 
-	return true;
+	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+
+	return ActualDelta != 0;
 }
 
 
