@@ -8,6 +8,8 @@
 
 class UPawnSensingComponent;
 class USAttributesComponent;
+class UUserWidget;
+class USWorldUserWidget;
 
 
 UCLASS()
@@ -20,11 +22,23 @@ public:
 
 protected:
 
+	USWorldUserWidget* ActiveHealthBar;
+
+	UPROPERTY(EditAnywhere, Category="UI")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+	
+	UPROPERTY(VisibleAnywhere, Category="Effect")
+	FName TimeToHitParamName;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USAttributesComponent* AttributesComp;
 	
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	UPawnSensingComponent* PawnSensingComponent;
+	
+	/* Key for AI Blackboard 'TargetActor' */
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TargetActorKey;
 
 	UFUNCTION()
 	void OnPawnSeen(APawn* Pawn);
@@ -32,7 +46,11 @@ protected:
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, USAttributesComponent* OwningComp, float NewHealth, float Delta);
 
+	UFUNCTION(BlueprintCallable, Category = "AI")
 	void setTargetActor(AActor* NewTarget);
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	AActor* GetTargetActor() const;
 
 	virtual void PostInitializeComponents() override;
 

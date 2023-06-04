@@ -14,11 +14,18 @@ class ACTIONROGUELIKE_API USBTTask_RangeAttack : public UBTTaskNode
 {
 	GENERATED_BODY()
 
+	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
 protected:
 
 
-	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	UPROPERTY(EditAnywhere, Category="AI")
+	float MaxBulletSpread;
 
 	UPROPERTY(EditAnywhere, Category="AI")
 	TSubclassOf<AActor> NewProjectileClass;
+
+public:
+
+	USBTTask_RangeAttack();
 };

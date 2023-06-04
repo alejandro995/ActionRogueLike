@@ -25,6 +25,21 @@ void ASGameModeBase::StartPlay()
 	
 }
 
+void ASGameModeBase::KillAll()
+{
+	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
+	{
+		ASAICharacter* Bot = *It;
+
+		USAttributesComponent* AttributeComp = USAttributesComponent::GetAttributes(Bot);
+
+		if (ensure(AttributeComp) && AttributeComp->isAlive())
+		{
+			AttributeComp->Kill(this); //Pass in player? for kill credit
+		}
+	}
+}
+
 
 void ASGameModeBase::SpawnBotTimeElapsed()
 {
@@ -33,7 +48,7 @@ void ASGameModeBase::SpawnBotTimeElapsed()
 	{
 		ASAICharacter* Bot = *It;
 
-		USAttributesComponent* AttributeComp = Cast<USAttributesComponent>(Bot->GetComponentByClass(USAttributesComponent::StaticClass()));
+		USAttributesComponent* AttributeComp = USAttributesComponent::GetAttributes(Bot);
 
 		if (ensure(AttributeComp) && AttributeComp->isAlive())
 		{

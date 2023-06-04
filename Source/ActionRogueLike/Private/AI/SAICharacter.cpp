@@ -7,6 +7,7 @@
 #include "BrainComponent.h"
 #include "SAttributesComponent.h"
 #include "SCharacter.h"
+#include "SWorldUserWidget.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/PawnSensingComponent.h"
 
@@ -18,6 +19,9 @@ ASAICharacter::ASAICharacter()
 	AttributesComp = CreateDefaultSubobject<USAttributesComponent>("AttributesComp");
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	TargetActorKey = "TargetActor";
+	TimeToHitParamName = "TimeToHit";
 
 }
 
@@ -40,6 +44,19 @@ void ASAICharacter::OnHealthChanged(AActor* InstigatorActor, USAttributesCompone
 			setTargetActor(InstigatorActor);
 			
 		}
+
+		if (ActiveHealthBar == nullptr)
+		{
+			ActiveHealthBar = CreateWidget<USWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
+			
+			if (ActiveHealthBar)
+			{
+				ActiveHealthBar->AttachedActor = this;
+				ActiveHealthBar->AddToViewport();
+			}
+		}
+		
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 
 		if(NewHealth <= 0.0f)
 		{
@@ -71,12 +88,26 @@ void ASAICharacter::setTargetActor(AActor* NewTarget)
 	}
 }
 
+AActor* ASAICharacter::GetTargetActor() const
+{
+	AAIController* AIC = Cast<AAIController>(GetController());
+	if (AIC)
+	{
+		return Cast<AActor>(AIC->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
+	}
+
+	return nullptr;
+}
+
 void ASAICharacter::OnPawnSeen(APawn* Pawn)
 {
 
+	// Ignore if target already set
+	if (GetTargetActor() != Pawn)
+	{
 	setTargetActor(Pawn);
 
-
+	}
 
 		DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::White, 4.0f, true);
 	

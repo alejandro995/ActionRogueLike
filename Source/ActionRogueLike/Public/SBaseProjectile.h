@@ -10,6 +10,7 @@ class USphereComponent;
 class UProjectileMovementComponent;
 class UParticleSystemComponent;
 class UCameraShakeBase;
+class USoundCue;
 
 UCLASS(ABSTRACT)
 class ACTIONROGUELIKE_API ASBaseProjectile : public AActor
@@ -17,12 +18,23 @@ class ACTIONROGUELIKE_API ASBaseProjectile : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ASBaseProjectile();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+	TSubclassOf<UCameraShakeBase> ImpactShake;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+	float ImpactShakeInnerRadius;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+	float ImpactShakeOuterRadius;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
-	UParticleSystem* ImpactVFX;
+	TObjectPtr<UParticleSystem> ImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	TObjectPtr<USoundCue> ImpactSound;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USphereComponent* SphereComp;
@@ -34,31 +46,14 @@ protected:
 	UParticleSystemComponent* EffectComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Sound")
-	UAudioComponent* AudioComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Sound")
-	UAudioComponent* ImpactAudioComp;
-
-	UPROPERTY(EditAnywhere, Category="Camera")
-	UCameraShakeSourceComponent* CameraShake;
+	TObjectPtr<UAudioComponent> AudioComp;
 
 	UFUNCTION()
 	virtual void OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-	UFUNCTION()
-	virtual void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
+	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Explode();
 	
 	virtual void PostInitializeComponents() override;
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 	
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };
