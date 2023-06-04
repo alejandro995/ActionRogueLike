@@ -3,6 +3,10 @@
 
 #include "SAttributesComponent.h"
 
+#include "SGameModeBase.h"
+
+static TAutoConsoleVariable<float> CVarDamageMultiplier(TEXT("SU.DamageMultipier"), 1.0f, TEXT("Global Damage Modifier for Atribute Component"), ECVF_Cheat);
+
 // Sets default values for this component's properties
 USAttributesComponent::USAttributesComponent()
 {
@@ -38,10 +42,18 @@ float USAttributesComponent::GetMaxHealth() const
 
 bool USAttributesComponent::ApplyHealthChange(AActor* InstigatorActor,  float Delta)
 {
-	if(!GetOwner()->CanBeDamaged())
+	if(!GetOwner()->CanBeDamaged() && Delta < 0.0f)
 	{
 		return false;
 	}
+
+	if (Delta < 0.0f)
+	{
+		float DamageMultiplier = CVarDamageMultiplier.GetValueOnGameThread();
+
+		Delta *= DamageMultiplier;
+	}
+	
 	float OldHealth = Health;
 	
 	Health = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);
@@ -49,6 +61,15 @@ bool USAttributesComponent::ApplyHealthChange(AActor* InstigatorActor,  float De
 	float ActualDelta = Health - OldHealth;
 
 	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+
+	if (ActualDelta < 0.0f && Health == 0.0f)
+	{
+		ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();
+		if (GM)
+		{
+			GM->OnActorKilled(GetOwner(), InstigatorActor);
+		}
+	}
 
 	return ActualDelta != 0;
 }
