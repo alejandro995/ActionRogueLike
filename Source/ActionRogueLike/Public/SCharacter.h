@@ -11,6 +11,7 @@ class USAttributesComponent;
 class UCameraComponent;
 class USpringArmComponent;
 class USInteractionComponent;
+class USActionComponent;
 class UAnimMontage;
 class UParticleSystem;
 
@@ -58,6 +59,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USAttributesComponent* AttributesComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	USActionComponent* ActionComp;
+
 	UPROPERTY(VisibleAnywhere, Category="Debug")
 	bool DebugMode;
 	
@@ -71,26 +75,21 @@ public:
 	void MoveForward(float Value);
 
 	void MoveRight(float Value);
+
+	void SprintStart();
+
+	void SprintStop();
 	
 	void PrimaryAttack();
 
-	void PrimaryAttack_TimeElapsed();
-
-	void SecondaryAttack();
-	
-	void SecondaryAttack_TimeElapsed();
+	void BlackHoleAttack();
 
 	void Dash();
-
-	void Dash_TimeElapsed();
 	
 	void PrimaryInteract();
-	
-	void PlayHitFlashEffect();
 
 	void DebugDirectionArrow();
 
-	void Attack_TimeElapsed(TSubclassOf<AActor> ProjectileClassArg);
 
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, USAttributesComponent* OwningComp, float NewHealth, float Delta);

@@ -5,6 +5,7 @@
 #include "DrawDebugHelpers.h"
 #include "SAttributesComponent.h"
 #include "SInteractionComponent.h"
+#include "Actions/SActionComponent.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
@@ -31,6 +32,7 @@ ASCharacter::ASCharacter()
 	HitFlashVFX = CreateDefaultSubobject<UParticleSystem>("HitFlashVFX");
 	
 	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
+	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
 
 	AttributesComp = CreateDefaultSubobject<USAttributesComponent>("AttributesComp");
 	DebugMode = false;
@@ -105,11 +107,13 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Jumping", IE_Pressed, this, &ASCharacter::Jump);
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this , &ASCharacter::PrimaryAttack);
-	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &ASCharacter::SecondaryAttack);
+	PlayerInputComponent->BindAction("BlackHoleAttack", IE_Pressed, this, &ASCharacter::BlackHoleAttack);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASCharacter::Dash);
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
-	
 
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::SprintStart);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::SprintStop);
+	
 }
 
 void ASCharacter::HealSelf(float Amount)
@@ -139,82 +143,29 @@ void ASCharacter::MoveRight(float Value)
 	AddMovementInput(RightVector, Value);
 }
 
-void ASCharacter::PrimaryAttack()
+void ASCharacter::SprintStart()
 {
-	PlayAnimMontage(AttackAnim);
-	PlayHitFlashEffect();
-
-	
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);
+	ActionComp->StartActionByName(this, "Sprint");
 }
 
-void ASCharacter::SecondaryAttack()
+void ASCharacter::SprintStop()
 {
-	PlayAnimMontage(AttackAnim);
-	PlayHitFlashEffect();
+	ActionComp->StopActionByName(this, "Sprint");
+}
 
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::SecondaryAttack_TimeElapsed, 0.2f);
-	
+void ASCharacter::PrimaryAttack()
+{
+	ActionComp->StartActionByName(this, "PrimaryAttack");
+}
+
+void ASCharacter::BlackHoleAttack()
+{
+	ActionComp->StartActionByName(this, "BlackHoleAttack");
 }
 
 void ASCharacter::Dash()
 {
-	PlayAnimMontage(AttackAnim);
-	PlayHitFlashEffect();
-
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::Dash_TimeElapsed, 0.2f);
-}
-
-void ASCharacter::PrimaryAttack_TimeElapsed()
-{
-		Attack_TimeElapsed(ProjectileClass);
-}
-
-void ASCharacter::SecondaryAttack_TimeElapsed()
-{
-	Attack_TimeElapsed(SecondaryProjectileClass);
-}
-
-void ASCharacter::Dash_TimeElapsed()
-{
-	Attack_TimeElapsed(DashProjectileClass);
-}
-
-void ASCharacter::Attack_TimeElapsed(TSubclassOf<AActor> ProjectileClassArg)
-{
-	if(ensure(ProjectileClassArg))
-	{
-		APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
-		FVector camStartLocation = camManager->GetCameraLocation();
-		FVector camEndLocation  = camStartLocation + ( camManager->GetCameraRotation().Vector() * 10000.0f);
-		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-		float Radius = 5.0f;
-		FHitResult Hit;
-		FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
-		FCollisionObjectQueryParams objParams;
-		objParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-		objParams.AddObjectTypesToQuery(ECC_WorldStatic);
-		objParams.AddObjectTypesToQuery(ECC_Pawn);
-
-		// SweepSingleByObjectType validates over object type where it was hit
-		bool bHit = GetWorld()->SweepSingleByObjectType(Hit, camStartLocation, camEndLocation,
-																  FQuat::Identity, objParams, Shape);
-		FRotator finalRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, bHit ? Hit.Location : Hit.TraceEnd);
-		FTransform SpawnTM = FTransform(finalRotation,HandLocation);
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		SpawnParams.Instigator = this;
-
-	
-		GetWorld()->SpawnActor<AActor>(ProjectileClassArg , SpawnTM, SpawnParams);
-
-		if(DebugMode)
-		{
-			DrawDebugLine(GetWorld(), camStartLocation, camEndLocation, FColor::Purple, false, 2.0f, 0, 2.0f );
-			DrawDebugSphere(GetWorld(), Hit.Location, 5, 16, FColor::Orange, false, 2.0f);
-		}
-	}
-	
+	ActionComp->StartActionByName(this, "Dash");
 }
 
 void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributesComponent* OwningComp, float NewHealth,
@@ -245,9 +196,5 @@ void ASCharacter::PrimaryInteract()
 	InteractionComp->PrimaryInteract();
 }
 
-void ASCharacter::PlayHitFlashEffect()
-{
-	UGameplayStatics::SpawnEmitterAttached(HitFlashVFX, GetMesh(), "Muzzle_01");
-}
 
 

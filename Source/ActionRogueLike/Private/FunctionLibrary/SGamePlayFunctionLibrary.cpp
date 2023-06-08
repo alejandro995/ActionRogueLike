@@ -27,7 +27,10 @@ bool USGamePlayFunctionLibrary::ApplyDirectionalDamage(AActor* DamageCauser, AAc
 
 		if (HitComp && HitComp->IsSimulatingPhysics(HitResult.BoneName))
 		{
-			HitComp->AddImpulseAtLocation(-HitResult.ImpactNormal * 300000.f, HitResult.ImpactPoint, HitResult.BoneName);	
+			FVector DirectionVector  = HitResult.TraceEnd - HitResult.TraceStart;
+			DirectionVector.Normalize();
+			
+			HitComp->AddImpulseAtLocation(DirectionVector * 300000.f, HitResult.ImpactPoint, HitResult.BoneName);	
 		}
 		return true;
 	}
