@@ -4,28 +4,30 @@
 
 #include "CoreMinimal.h"
 #include "SBasePickPowerUp.h"
-#include "SHealthPotion.generated.h"
+#include "SCoin.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONROGUELIKE_API ASHealthPotion : public ASBasePickPowerUp
+class ACTIONROGUELIKE_API ASCoin : public ASBasePickPowerUp
 {
 	GENERATED_BODY()
 
 protected:
 	bool activated;
-	
-	FTimerHandle TimerHandle_PickUpActivation;
+
+	FTimerHandle TimeHanlde_PickupActivation;
 
 	void Interact_Implementation(APawn* InstigatorPawn);
 
-	UPROPERTY(EditAnywhere, Category= "HealthPotion")
-	int32 CreditCost;
+	UPROPERTY(EditAnywhere, Category = "Credits")
+	int32 CreditsAmount;
+	
 
 public:
 	void Activation_TimeElapsed();
-
-	ASHealthPotion();
+	
+	ASCoin();
+	
 };

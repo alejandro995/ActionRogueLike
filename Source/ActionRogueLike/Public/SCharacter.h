@@ -36,7 +36,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Attack")
 	UParticleSystem* HitFlashVFX;
-
+	
 	FTimerHandle TimerHandle_PrimaryAttack;
 
 

@@ -33,11 +33,29 @@ protected:
 	
 	FTimerHandle TimeHandle_SpawnBots;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category= "AI")
+	int32 CreditsPerKill;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Powerups")
+	UEnvQuery* PowerupSpawnQuery;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Powerups")
+	TArray<TSubclassOf<AActor>> PowerUpClasses;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Powerups")
+	float RequiredPowerupDistance;
+
+	UPROPERTY(EditDefaultsOnly, Category="Powerups")
+	int32 DesiredPowerupCount;
+
 	UFUNCTION()
 	void SpawnBotTimeElapsed();
 
 	UFUNCTION()
-	void OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+	void OnBotSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+
+	UFUNCTION()
+	void OnPowerSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstace, EEnvQueryStatus::Type QueryStatus);
 
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);

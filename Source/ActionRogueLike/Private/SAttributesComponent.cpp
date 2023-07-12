@@ -67,7 +67,7 @@ bool USAttributesComponent::ApplyHealthChange(AActor* InstigatorActor,  float De
 		ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();
 		if (GM)
 		{
-			GM->OnActorKilled(GetOwner(), InstigatorActor);
+		GM->OnActorKilled(GetOwner(), InstigatorActor);
 		}
 	}
 

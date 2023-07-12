@@ -8,6 +8,7 @@
 #include "SAttributesComponent.h"
 #include "SCharacter.h"
 #include "SWorldUserWidget.h"
+#include "Actions/SActionComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -19,6 +20,7 @@ ASAICharacter::ASAICharacter()
 	
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComponent");
 	AttributesComp = CreateDefaultSubobject<USAttributesComponent>("AttributesComp");
+	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
@@ -49,7 +51,7 @@ void ASAICharacter::OnHealthChanged(AActor* InstigatorActor, USAttributesCompone
 			setTargetActor(InstigatorActor);
 			
 		}
-
+		
 		if (ActiveHealthBar == nullptr)
 		{
 			ActiveHealthBar = CreateWidget<USWorldUserWidget>(GetWorld(), HealthBarWidgetClass);

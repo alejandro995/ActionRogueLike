@@ -8,6 +8,7 @@
 #include "SCharacter.h"
 #include "AI/SAICharacter.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
+#include "State/SPlayerState.h"
 
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("SU.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
 
@@ -16,6 +17,12 @@ ASGameModeBase::ASGameModeBase()
 {
 
 	SpawnTimerInterval = 2.0f;
+	CreditsPerKill = 20;
+
+	DesiredPowerupCount = 10;
+	RequiredPowerupDistance = 2000;
+
+	PlayerStateClass = ASPlayerState::StaticClass();
 }
 
 void ASGameModeBase::StartPlay()
@@ -25,6 +32,15 @@ void ASGameModeBase::StartPlay()
 	//Continuous timer to spawn is more bots.
 	//Actual amount of bots and whether its allowed to spawn determined by spawn logic later in the chain...
 	GetWorldTimerManager().SetTimer(TimeHandle_SpawnBots, this,&ASGameModeBase::SpawnBotTimeElapsed, SpawnTimerInterval, true);
+
+	if(ensure(PowerUpClasses.Num() > 0))
+	{
+		UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, PowerupSpawnQuery, this, EEnvQueryRunMode::AllMatching, nullptr);
+		if (ensure(QueryInstance))
+		{
+			QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnPowerSpawnQueryCompleted);
+		}
+	}
 	
 }
 
@@ -84,12 +100,12 @@ void ASGameModeBase::SpawnBotTimeElapsed()
 
 	if(ensure(QueryInstance))
 	{
-		QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnQueryCompleted);
+		QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnBotSpawnQueryCompleted);
 	}
 
 }
 
-void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance,
+void ASGameModeBase::OnBotSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance,
 	EEnvQueryStatus::Type QueryStatus)
 {
 
@@ -110,8 +126,58 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 	}
 }
 
+void ASGameModeBase::OnPowerSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstace, EEnvQueryStatus::Type QueryStatus)
+{
+	if (QueryStatus != EEnvQueryStatus::Success)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Spawn bot EQS Query failed"));
+		return;
+	}
+
+	TArray<FVector> Locations = QueryInstace->GetResultsAsLocations();
+	TArray<FVector> UsedLocations;
+
+	int32 SpawnCounter = 0;
+
+	while (SpawnCounter <DesiredPowerupCount && Locations.Num() >0)
+	{
+		int32 RandomLocationIndex = FMath::RandRange(0, Locations.Num()-1);
+		FVector PickedLocation = Locations[RandomLocationIndex];
+
+		Locations.RemoveAt(RandomLocationIndex);
+
+		bool bValidLocation = true;
+		for (FVector OtherLocation : UsedLocations)
+		{
+			float DistanceTo = (PickedLocation - OtherLocation).Size();
+
+			if (DistanceTo < RequiredPowerupDistance)
+			{
+				bValidLocation = false;
+				break;
+			}
+		}
+
+		if (!bValidLocation)
+		{
+			continue;
+		}
+
+		int32 RandomClassIndex = FMath::RandRange(0, PowerUpClasses.Num() - 1 );
+		TSubclassOf<AActor> RandomPowerupClass = PowerUpClasses[RandomClassIndex];
+
+		GetWorld()->SpawnActor<AActor>(RandomPowerupClass, PickedLocation, FRotator::ZeroRotator);
+
+		UsedLocations.Add(PickedLocation);
+		SpawnCounter++;
+	}
+}
+
+
 void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 {
+	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+	
 	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
 	if (Player)
 	{
@@ -123,9 +189,21 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 		float RespawnDelay = 2.0f;
 		GetWorldTimerManager().SetTimer(TimerHandle_ResponseDelay, Delegate, RespawnDelay, false);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("OnActorKilled: Victim %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+	
+	
+	APawn* KillerPawn = Cast<APawn>(Killer);
+	{
+		if (KillerPawn)
+		{
+			if (ASPlayerState* PS = KillerPawn->GetPlayerState<ASPlayerState>())
+			{
+				PS->AddCredits(CreditsPerKill);
+			}
+			
+		}
+	}
 }
+
 
 void ASGameModeBase::RespawnPlayerElapsed(AController* Controller)
 {
