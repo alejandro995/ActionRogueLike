@@ -2,13 +2,11 @@
 
 
 #include "SMagicProjectile.h"
-#include "SAttributesComponent.h"
 #include "Actions/SActionComponent.h"
-#include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "FunctionLibrary/SGamePlayFunctionLibrary.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "SActionEffect.h"
 
 
 // Sets default values
@@ -47,11 +45,13 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 		if (USGamePlayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageAmount, SweepResult))
 		{
 			Explode();
+
+			if (ActionComp)
+			{
+				ActionComp->AddAction(GetInstigator(), BurningActionClass);
+			}
 		}
 	}
-
-
-	
 }
 
 

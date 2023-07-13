@@ -23,8 +23,10 @@ void ASCoin::Interact_Implementation(APawn* InstigatorPawn)
 	{
 		return;
 	}
+
+	ASPlayerState* PS = InstigatorPawn->GetPlayerState<ASPlayerState>();
 	
-	if (ASPlayerState* PS = InstigatorPawn->GetPlayerState<ASPlayerState>())
+	if (PS)
 	{
 			PS->AddCredits(CreditsAmount);
 

@@ -15,7 +15,6 @@ class ACTIONROGUELIKE_API ASHealthPotion : public ASBasePickPowerUp
 	GENERATED_BODY()
 
 protected:
-	bool activated;
 	
 	FTimerHandle TimerHandle_PickUpActivation;
 
