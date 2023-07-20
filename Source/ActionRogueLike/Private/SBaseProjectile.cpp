@@ -36,6 +36,8 @@ ASBaseProjectile::ASBaseProjectile()
 
 	bReplicates = true;
 
+	SetReplicates(true);
+
 }
 
 

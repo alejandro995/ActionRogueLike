@@ -39,17 +39,19 @@ protected:
 	// BlueprintReadWrite - read-write access in Blueprints
 	//--
 	// Category = "" - display for details panels and Blueprints context menu.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Atributtes")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category="Atributtes")
 	float Health;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Atributtes")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category="Atributtes")
 	float MaxHealth;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Atributtes")
 	float LowHealthTreshold;
-
 	
 	// HealthMax, Stamina, Strength
+
+	UFUNCTION(NetMulticast, Reliable) // FIXME : mark as unrealiable 
+	void MulticastHealthChanged(AActor* InstigatorActor, float NewHealth, float Delta);
 
 public:
 

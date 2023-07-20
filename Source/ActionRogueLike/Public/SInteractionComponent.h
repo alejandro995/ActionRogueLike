@@ -19,12 +19,13 @@ public:
 
 	void PrimaryInteract();
 	
-
-public:	
-	// Sets default values for this component's properties
 	USInteractionComponent();
 
 protected:
+
+	UFUNCTION(Server, Reliable)
+	void ServerInteract(AActor* InFocus);
+	
 	void FindBestInteractable();
 	// Called when the game starts
 	virtual void BeginPlay() override;
