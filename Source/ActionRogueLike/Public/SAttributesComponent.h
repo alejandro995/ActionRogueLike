@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "SAttributesComponent.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnHealthChanged, AActor*, InstigatorActor,  USAttributesComponent*, OwningComp,  float, NewHealth, float, Delta);
+// Declare a comomn multicast for both 2 delegates OnHealthChange and OnRageChange
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnAtributeChanged, AActor*, InstigatorActor,  USAttributesComponent*, OwningComp,  float, NewValue, float, Delta);
 
 
 
@@ -45,6 +45,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category="Atributtes")
 	float MaxHealth;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category="Atributtes")
+	float Rage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category="Atributtes")
+	float MaxRage;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Atributtes")
 	float LowHealthTreshold;
 	
@@ -52,6 +58,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable) // FIXME : mark as unrealiable 
 	void MulticastHealthChanged(AActor* InstigatorActor, float NewHealth, float Delta);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRageChanged(AActor* InstigatorActor, float NewRage, float Delta);
 
 public:
 
@@ -69,11 +78,20 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetMaxHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float getRage() const;
 	
 	UPROPERTY(BlueprintAssignable)
-	FOnHealthChanged OnHealthChanged;
+	FOnAtributeChanged OnHealthChanged;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnAtributeChanged OnRageChanged;
 	
-	UFUNCTION(BlueprintCallable, Category = "Attribute")
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
+
+	UFUNCTION(BlueprintCallable, Category= "Attributes")
+	bool ApplyRage(AActor* InstigatorActor, float Delta);
+	
 };

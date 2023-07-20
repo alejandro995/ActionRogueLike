@@ -13,10 +13,14 @@ USAttributesComponent::USAttributesComponent()
 {
 	Health = FMath::Clamp(100, 0, 100);
 	MaxHealth = FMath::Clamp(100, 0, 100);
+	Rage = FMath::Clamp(0, 0, 100);
+	MaxRage = FMath::Clamp(100, 0, 100);
 	LowHealthTreshold = 33;
 
 	SetIsReplicatedByDefault(true);
 }
+
+
 
 bool USAttributesComponent::Kill(AActor* InstigatorActor)
 {
@@ -43,6 +47,11 @@ float USAttributesComponent::GetMaxHealth() const
 	return MaxHealth;
 }
 
+float USAttributesComponent::getRage() const
+{
+	return Rage;
+}
+
 bool USAttributesComponent::ApplyHealthChange(AActor* InstigatorActor,  float Delta)
 {
 	if(!GetOwner()->CanBeDamaged() && Delta < 0.0f)
@@ -60,6 +69,7 @@ bool USAttributesComponent::ApplyHealthChange(AActor* InstigatorActor,  float De
 	float OldHealth = Health;
 	
 	Health = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);
+	
 
 	float ActualDelta = Health - OldHealth;
 
@@ -68,6 +78,7 @@ bool USAttributesComponent::ApplyHealthChange(AActor* InstigatorActor,  float De
 	if(ActualDelta != 0.0f)
 	{
 		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
+
 	}
 	
 	if (ActualDelta < 0.0f && Health == 0.0f)
@@ -80,6 +91,21 @@ bool USAttributesComponent::ApplyHealthChange(AActor* InstigatorActor,  float De
 	}
 
 	return ActualDelta != 0;
+}
+
+bool USAttributesComponent::ApplyRage(AActor* InstigatorActor, float Delta)
+{
+	 float OldRage = Rage;
+	 Rage = FMath::Clamp(Rage + Delta, 0.0f, MaxRage);
+
+	float ActualDelta = Rage - OldRage;
+	 if (ActualDelta != 0.0f)
+	 {
+	 	MulticastRageChanged(InstigatorActor, Rage, ActualDelta);
+	 }
+
+	return ActualDelta != 0;
+	
 }
 
 USAttributesComponent* USAttributesComponent::GetAttributes(AActor* FromActor)
@@ -119,12 +145,19 @@ void USAttributesComponent::MulticastHealthChanged_Implementation(AActor* Instig
 	OnHealthChanged.Broadcast(InstigatorActor, this, NewHealth, Delta);
 }
 
+void USAttributesComponent::MulticastRageChanged_Implementation(AActor* InstigatorActor, float NewRage, float Delta)
+{
+	OnRageChanged.Broadcast(InstigatorActor, this, NewRage, Delta);
+}
+
 void USAttributesComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(USAttributesComponent, Health);
 	DOREPLIFETIME(USAttributesComponent, MaxHealth);
+	DOREPLIFETIME(USAttributesComponent, Rage);
+	DOREPLIFETIME(USAttributesComponent,MaxRage);
 
 	//Optimization
 	//DOREPLIFETIME_CONDITION(USAttributesComponent, MaxHealth, COND_InitialOnly);
