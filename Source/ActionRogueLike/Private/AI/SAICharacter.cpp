@@ -94,7 +94,7 @@ void ASAICharacter::setTargetActor(AActor* NewTarget)
 	AAIController* AIC = Cast<AAIController>(GetController());
 	if(AIC)
 	{
-		AIC->GetBlackboardComponent()->SetValueAsObject("TargetActor", NewTarget);
+		AIC->GetBlackboardComponent()->SetValueAsObject(TargetActorKey, NewTarget);
 	}
 }
 
@@ -119,7 +119,13 @@ void ASAICharacter::OnPawnSeen(APawn* Pawn)
 
 	}
 
-		DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::White, 4.0f, true);
+	USWorldUserWidget* NewWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
+	if (NewWidget)
+	{
+		NewWidget->AttachedActor = this;
+		NewWidget->AddToViewport(10);
+		
+	}
 	
 }
 

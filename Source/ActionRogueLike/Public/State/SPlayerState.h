@@ -23,10 +23,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Playerstate|Credits")
 	bool RemoveCredits(int32 Delta);
 
-	UPROPERTY(BlueprintAssignable, Category= "Events")
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastCreditsChange(ASPlayerState* PlayerState, int32 NewCredits, int32 Delta);
+
+	UPROPERTY(BlueprintAssignable,  Category= "Events")
 	FOnCreditsChange OnCreditsChange;
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category="PlayerState|Credits")
 	int32 Credits;
 };

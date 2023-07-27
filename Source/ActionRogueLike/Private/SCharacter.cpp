@@ -155,12 +155,16 @@ void ASCharacter::SprintStop()
 
 void ASCharacter::PrimaryAttack()
 {
-	ActionComp->StartActionByName(this, "PrimaryAttack");
+	ActionComp->StartActionByName(this, FName(TEXT("PrimaryAttack")));
 }
 
 void ASCharacter::BlackHoleAttack()
 {
-	ActionComp->StartActionByName(this, "BlackHoleAttack");
+	if(AttributesComp->ApplyRage(this, -10))
+	{
+		ActionComp->StartActionByName(this, "BlackHoleAttack");
+	}
+	
 }
 
 void ASCharacter::Dash()
@@ -178,6 +182,9 @@ void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributesComponent
 		USkeletalMeshComponent* Charactermesh = GetMesh();
 		UE_LOG(LogTemp, Warning, TEXT("MESH: %s"), *GetNameSafe(Charactermesh));
 		Charactermesh->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+
+		float RageDelta = FMath::Abs(Delta);
+		AttributesComp->ApplyRage(InstigatorActor, RageDelta);
 
 	}
 

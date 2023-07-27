@@ -10,7 +10,7 @@
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "State/SPlayerState.h"
 
-static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("SU.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
+static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("SU.SpawnBots"), false, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
 
 
 ASGameModeBase::ASGameModeBase()
@@ -197,6 +197,7 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 		{
 			if (ASPlayerState* PS = KillerPawn->GetPlayerState<ASPlayerState>())
 			{
+				GEngine->AddOnScreenDebugMessage(-1,1.0f, FColor::Red, "Credits Applied After minion Killed");
 				PS->AddCredits(CreditsPerKill);
 			}
 			
