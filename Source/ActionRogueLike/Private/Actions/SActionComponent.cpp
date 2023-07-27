@@ -43,11 +43,9 @@ void USActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	for (USAction* Action: Actions)
 	{
 		FColor TextColor = Action->isRunning() ? FColor::Blue : FColor::White;
-		FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s : Is Running: %s : Outer: %s"),
+		FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s "),
 			*GetNameSafe(GetOwner()),
-			*Action->ActionName.ToString(),
-			Action->isRunning()? TEXT("true") : TEXT("false"),
-			*GetNameSafe(GetOuter()));
+			*GetNameSafe(Action));
 		LogOnScreen(this, ActionMsg, TextColor, 0.0f);
 	}
 }
@@ -56,6 +54,12 @@ void USActionComponent::AddAction(AActor* Instigator, TSubclassOf<USAction> Acti
 {
 	if (!ensure(ActionClass))
 	{
+		return;
+	}
+
+	if (!GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client attempting to AddAction. [Class: %s]"), *GetNameSafe(ActionClass));
 		return;
 	}
 
@@ -126,6 +130,10 @@ bool USActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
 		{
 			if (Action->isRunning())
 			{
+				if (!GetOwner()->HasAuthority())
+				{
+					ServerStopAction(Instigator, ActionName);
+				}
 				Action->StopAction(Instigator);
 				return true;
 			}
@@ -151,6 +159,11 @@ bool USActionComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* B
 	}
 
 	return WroteSomething;
+}
+
+void USActionComponent::ServerStopAction_Implementation(AActor* Instigator, FName ActionName)
+{
+	StopActionByName(Instigator, ActionName);
 }
 
 
