@@ -4,6 +4,7 @@
 #include "State/SPlayerState.h"
 
 #include "Net/UnrealNetwork.h"
+#include "SaveGame/SSaveGame.h"
 
 
 void ASPlayerState::AddCredits(int32 Delta)
@@ -40,6 +41,22 @@ bool ASPlayerState::RemoveCredits(int32 Delta)
 	}
 
 	return true;
+}
+
+void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
+{
+	if (SaveObject)
+	{
+		Credits = SaveObject->Credits;
+	}
+}
+
+void ASPlayerState::SavePlayerState_Implementation(USSaveGame* SaveObject)
+{
+	if (SaveObject)
+	{
+		SaveObject->Credits = Credits;
+	}
 }
 
 void ASPlayerState::MulticastCreditsChange_Implementation(ASPlayerState* PlayerState, int32 NewCredits, int32 Delta)
