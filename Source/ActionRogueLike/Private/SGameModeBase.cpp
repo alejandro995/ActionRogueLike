@@ -61,13 +61,13 @@ void ASGameModeBase::StartPlay()
 
 void ASGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
-
 	ASPlayerState* PS = NewPlayer-> GetPlayerState<ASPlayerState>();
-	if (PS)
+	if (ensure(PS))
 	{
 		PS->LoadPlayerState(CurrentSaveGame);
 	}
+
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 }
 
 void ASGameModeBase::KillAll()
@@ -218,7 +218,7 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 	
 	APawn* KillerPawn = Cast<APawn>(Killer);
 	{
-		if (KillerPawn)
+		if (KillerPawn && KillerPawn != VictimActor)
 		{
 			if (ASPlayerState* PS = KillerPawn->GetPlayerState<ASPlayerState>())
 			{

@@ -118,7 +118,11 @@ void ASAICharacter::OnPawnSeen(APawn* Pawn)
 	setTargetActor(Pawn);
 
 	}
+	MultiCastPawnSeen();
+}
 
+void ASAICharacter::MultiCastPawnSeen_Implementation()
+{
 	USWorldUserWidget* NewWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
 	if (NewWidget)
 	{
@@ -126,7 +130,6 @@ void ASAICharacter::OnPawnSeen(APawn* Pawn)
 		NewWidget->AddToViewport(10);
 		
 	}
-	
 }
 
 

@@ -18,7 +18,8 @@ void ASPlayerState::AddCredits(int32 Delta)
 
 	if(Delta != 0)
 	{
-		MulticastCreditsChange(this, Credits, Delta);
+		OnCreditsChange.Broadcast(this, Credits, Delta);
+		//MulticastCreditsChange(this, Credits, Delta);
 	}
 }
 
@@ -37,17 +38,25 @@ bool ASPlayerState::RemoveCredits(int32 Delta)
 
 	if (Delta != 0)
 	{
-		MulticastCreditsChange(this, Credits, -Delta);
+		OnCreditsChange.Broadcast(this, Credits, -Delta);
+		//MulticastCreditsChange(this, Credits, -Delta);
 	}
 
 	return true;
+}
+
+void ASPlayerState::OnRep_Credits(int32 OldCredits)
+{
+	OnCreditsChange.Broadcast(this, Credits, Credits - OldCredits);
 }
 
 void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
 {
 	if (SaveObject)
 	{
-		Credits = SaveObject->Credits;
+		//The State has been set up early in the gamemode. 
+		//Credits = SaveObject->Credits;
+		AddCredits(SaveObject->Credits);
 	}
 }
 
@@ -58,10 +67,16 @@ void ASPlayerState::SavePlayerState_Implementation(USSaveGame* SaveObject)
 		SaveObject->Credits = Credits;
 	}
 }
-
+/* This is used when multicast method is been used
 void ASPlayerState::MulticastCreditsChange_Implementation(ASPlayerState* PlayerState, int32 NewCredits, int32 Delta)
 {
 	OnCreditsChange.Broadcast(PlayerState, NewCredits, Delta);
+}
+*/
+
+int32 ASPlayerState::GetCredits() const
+{
+	return Credits;
 }
 
 

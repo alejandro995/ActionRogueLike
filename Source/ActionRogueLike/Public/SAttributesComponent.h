@@ -59,7 +59,7 @@ protected:
 	UFUNCTION(NetMulticast, Reliable) // FIXME : mark as unrealiable 
 	void MulticastHealthChanged(AActor* InstigatorActor, float NewHealth, float Delta);
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastRageChanged(AActor* InstigatorActor, float NewRage, float Delta);
 
 public:
