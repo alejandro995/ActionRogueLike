@@ -20,6 +20,8 @@ protected:
 
 	void Interact_Implementation(APawn* InstigatorPawn);
 
+	FText GetIteractText_Implementation(APawn* InstigatorPawn) override;
+
 	UPROPERTY(EditAnywhere, Category= "HealthPotion")
 	int32 CreditCost;
 

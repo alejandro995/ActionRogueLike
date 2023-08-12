@@ -3,6 +3,7 @@
 
 #include "SBasePickPowerUp.h"
 
+
 // Sets default values
 ASBasePickPowerUp::ASBasePickPowerUp()
 {
@@ -39,5 +40,11 @@ void ASBasePickPowerUp::Respawn()
 
 void ASBasePickPowerUp::Interact_Implementation(APawn* InstigatorPawn)
 {
+}
+
+
+FText ASBasePickPowerUp::GetIteractText_Implementation(APawn* InstigatorPawn)
+{
+	return FText::GetEmpty();
 }
 

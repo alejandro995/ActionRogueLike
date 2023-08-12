@@ -37,7 +37,7 @@ void USAction::StopAction_Implementation(AActor* Instigator)
 	
 	USActionComponent* Comp = GetOwningComponent();
 
-	Comp->ActiveGamePlayTags.RemoveTags(BlockedTags);
+	Comp->ActiveGamePlayTags.RemoveTags(GrantsTags);
 
 	RepData.bIsRunning = false;
 	RepData.Instigator = Instigator;

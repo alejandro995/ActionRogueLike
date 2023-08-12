@@ -20,6 +20,8 @@ public:
 	// Sets default values for this actor's properties
 	
 	void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	FText GetIteractText_Implementation(APawn* InstigatorPawn);
 	
 	ASBasePickPowerUp();
 	
